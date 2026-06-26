@@ -1,0 +1,385 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usepackage{ctex}
+\usepackage{amsmath, amssymb, amsfonts, amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{mathrsfs}
+
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+% 自定义命令
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prb}{\Pr}
+\newcommand{\ind}{\perp\!\!\!\perp}
+\newcommand{\bigo}{O}
+\newcommand{\goto}{\xrightarrow{p}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+
+\title{双稳健估计：从 AIPW 到 Bang \& Robins 再到 TMLE}
+\subtitle{Doubly Robust Estimation: From AIPW to Plug-in Estimators and TMLE}
+\author{Guo Wei}
+\institute{Department of Health Statistics, NMU}
+\date{\today}
+
+\begin{document}
+	
+	%======================================================
+	\begin{frame}
+		\titlepage
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{问题设定与识别}
+		\textbf{目标：} 估计二值处理 $A \in \{0,1\}$ 对结果 $Y$ 的平均因果效应（ATE）
+		\[
+		\psi = \E[Y^1] - \E[Y^0]
+		\]
+		
+		\textbf{基本假设（可识别性）：}
+		\begin{itemize}
+			\item \textbf{可交换性（Exchangeability）：} $Y^a \ind A \mid L$
+			\item \textbf{正定性（Positivity）：} $0 < \Prb[A=1\mid L=l] < 1,\quad \forall l$
+			\item \textbf{一致性（Consistency）：} $Y = AY^1 + (1-A)Y^0$
+		\end{itemize}
+		
+		\textbf{两个核心 nuisance functions：}
+		\[
+		b(a,L) = \E[Y\mid A=a, L], \qquad \pi(L) = \Prb[A=1\mid L]
+		\]
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{传统方法 I：结果回归（g-formula / Standardization）}
+		\textbf{思想：} 通过条件期望积分，模拟对所有人施加同一处理
+		\[
+		\E[Y^a] = \int \E[Y\mid A=a, L=l]\, dF_L(l) = \E[b(a,L)]
+		\]
+		
+		\textbf{插件估计量（Plug-in）：}
+		\[
+		\widehat{\psi}_{\text{reg}} = \frac{1}{n}\sum_{i=1}^n \widehat{b}(1, L_i) - \frac{1}{n}\sum_{i=1}^n \widehat{b}(0, L_i)
+		\]
+		
+		\textbf{局限：}
+		\begin{itemize}
+			\item 一致性\textbf{完全依赖}结果模型 $b(a,L)$ 的正确设定
+			\item 若模型误设（遗漏非线性项、交互项），估计量\textbf{不一致}
+		\end{itemize}
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{传统方法 II：逆概率加权（IPW）}
+		\textbf{思想：} 通过逆概率加权，构造伪随机化总体
+		\[
+		\E[Y^a] = \E\!\left[\frac{\mathrm{I}(A=a)\, Y}{\Prb[A=a\mid L]}\right]
+		\]
+		
+		\textbf{Horvitz-Thompson 估计量：}
+		\[
+		\widehat{\psi}_{\text{IPW}} = \frac{1}{n}\sum_{i=1}^n \frac{A_i Y_i}{\widehat{\pi}(L_i)} - \frac{1}{n}\sum_{i=1}^n \frac{(1-A_i) Y_i}{1-\widehat{\pi}(L_i)}
+		\]
+		
+		\textbf{局限：}
+		\begin{itemize}
+			\item 一致性\textbf{完全依赖}处理模型 $\pi(L)$ 的正确设定
+			\item 若倾向得分估计不准（尤其接近 $0$ 或 $1$ 时），方差爆炸、偏差增大
+		\end{itemize}
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{单稳健性的困境}
+		\begin{center}
+			\begin{tabular}{ccc}
+				\toprule
+				\textbf{方法} & \textbf{依赖模型} & \textbf{若该模型错误} \\
+				\midrule
+				结果回归 & $b(a,L)$ & 不一致 \\
+				IPW & $\pi(L)$ & 不一致 \\
+				\bottomrule
+			\end{tabular}
+		\end{center}
+		
+		\vspace{0.5cm}
+		\textbf{核心矛盾：} 两种方法各押一注，研究者只有一次“猜对”的机会。
+		
+		\vspace{0.5cm}
+		\structure{问题：} 能否构造一个估计量，同时利用两个模型，且\textbf{只要其中一个正确}就能保持一致？
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{双稳健估计的直观思想}
+		\textbf{定义（Doubly Robust）：}
+		一个估计量被称为双稳健的，如果它在以下两种情形中（至少）一种是\textbf{一致}的：
+		\begin{enumerate}
+			\item 结果模型 $b(a,L)$ 正确设定（无论 $\pi(L)$ 是否错误）；
+			\item 处理模型 $\pi(L)$ 正确设定（无论 $b(a,L)$ 是否错误）。
+		\end{enumerate}
+		且研究者\textbf{无需知道}哪个模型是正确的。
+		
+		\vspace{0.3cm}
+		\textbf{关键洞察：} 双稳健估计量的渐近偏差通常形如两个模型误差的\textbf{乘积}。
+		\[
+		\text{Bias} \propto (\text{结果模型误差}) \times (\text{处理模型误差})
+		\]
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{增广 IPW 估计量（AIPW）}
+		\textbf{Technical Point 13.2 的核心构造：}
+		
+		对反事实均值 $\E[Y^{a=1}]$，AIPW 估计量为：
+		\[
+		\widehat{\E}[Y^{a=1}]_{\text{DR}} = \frac{1}{n}\sum_{i=1}^n \left[ \widehat{b}(1, L_i) + \frac{A_i}{\widehat{\pi}(L_i)}\Big(Y_i - \widehat{b}(1, L_i)\Big) \right]
+		\]
+		
+		\textbf{直观解读：}
+		\begin{itemize}
+			\item 第一项 $\widehat{b}(1,L_i)$：结果回归的“基准预测”
+			\item 第二项 $\dfrac{A_i}{\widehat{\pi}(L_i)}\big(Y_i - \widehat{b}(1,L_i)\big)$：用\textbf{逆概率加权的残差}进行修正
+		\end{itemize}
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{AIPW 的两种等价形式}
+		\textbf{形式 I（结果回归 + 加权残差）：}
+		\[
+		\widehat{\E}[Y^{a=1}]_{\text{DR}} = \frac{1}{n}\sum_{i=1}^n \left[ \widehat{b}(1, L_i) + \frac{A_i}{\widehat{\pi}(L_i)}\big(Y_i - \widehat{b}(1, L_i)\big) \right]
+		\]
+		
+		\textbf{形式 II（IPW - 加权预测修正）：}
+		\[
+		\widehat{\E}[Y^{a=1}]_{\text{DR}} = \frac{1}{n}\sum_{i=1}^n \left[ \frac{A_i Y_i}{\widehat{\pi}(L_i)} - \left(\frac{A_i}{\widehat{\pi}(L_i)} - 1\right)\widehat{b}(1, L_i) \right]
+		\]
+		
+		\textbf{形式 II 显示：} AIPW 可视为对经典 IPW 估计量的“修正”——用结果模型的预测值去抵消 IPW 的过度变异。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{为什么 AIPW 是双稳健的？——数学核心}
+		\textbf{渐近偏差分解（Technical Point 13.2）：}
+		\[
+		\widehat{\E}[Y^{a=1}]_{\text{DR}} - \E[Y^{a=1}] \;\goto\; \E\!\left[ \pi(L)\left(\frac{1}{\pi(L)} - \frac{1}{\pi^*(L)}\right)\big(b(L) - b^*(L)\big) \right]
+		\]
+		其中 $\pi^*(L)$ 和 $b^*(L)$ 分别是两个参数模型的概率极限。
+		
+		\vspace{0.3cm}
+		\textbf{核心观察：} 偏差 = \textbf{处理模型误差} $\times$ \textbf{结果模型误差}
+		
+		\begin{itemize}
+			\item 若 $b^*(L) = b(L)$（结果模型正确），则偏差 $= 0$
+			\item 若 $\pi^*(L) = \pi(L)$（处理模型正确），则偏差 $= 0$
+		\end{itemize}
+		
+		\textbf{结论：} 只要两个模型中有一个正确，估计量一致。这就是\textbf{二阶偏差（Second-Order Bias）}。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{二阶偏差：从“叠加”到“相乘”}
+		\textbf{单稳健估计量（一阶偏差）：}
+		
+		若 nuisance estimator 的误差为 $O_p(n^{-\alpha})$（例如 $\alpha=1/4$），则
+		\[
+		\text{Bias}_{\text{IPW}} \approx \E\left[\left(\frac{1}{\widehat{\pi}} - \frac{1}{\pi}\right) AY\right] = O_p(n^{-\alpha})
+		\]
+		当 $\alpha=1/4$ 时，偏差为 $O_p(n^{-1/4})$，\textbf{慢于} $\sqrt{n}$ 一致性所需的 $O_p(n^{-1/2})$，导致\textbf{不一致}。
+		
+		\vspace{0.3cm}
+		\textbf{双稳健估计量（二阶偏差）：}
+		
+		若结果模型误差 $O_p(n^{-\beta})$，处理模型误差 $O_p(n^{-\alpha})$，则
+		\[
+		\text{Bias}_{\text{DR}} = O_p(n^{-\alpha}) \times O_p(n^{-\beta}) = O_p(n^{-(\alpha+\beta)})
+		\]
+		
+		\textbf{关键阈值：} 当 $\alpha = \beta = 1/4$ 时，
+		\[
+		\text{Bias}_{\text{DR}} = O_p(n^{-1/2}) \quad \text{（刚好达到 $\sqrt{n}$-一致性！）}
+		\]
+		
+		\textbf{直观：} 两个 10\% 的误差，叠加仍是 10\%，但\textbf{相乘}只有 1\%。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{从 AIPW 到插件估计量——关键分解}
+		对 ATE，将两个 AIPW 估计量相减并整理（Technical Point 13.3）：
+		
+		\[
+		\widehat{\psi}_{1,\text{AIPW}} - \widehat{\psi}_{0,\text{AIPW}} = \underbrace{P_n[\widehat{b}(1,L)] - P_n[\widehat{b}(0,L)]}_{\text{插件估计量}} \;-\; \underbrace{P_n\!\left[\frac{Y - \widehat{b}(A,L)}{\widehat{f}(A|L)}\big\{\mathrm{I}(A=1) - \mathrm{I}(A=0)\big\}\right]}_{\text{修正项 } \Delta}
+		\]
+		
+		\textbf{关键问题：} 如果能让修正项 $\Delta = 0$，则\textbf{纯插件估计量} $P_n[\widehat{b}(1,L)] - P_n[\widehat{b}(0,L)]$ 将\textbf{精确等于} AIPW 估计量！
+		
+		\vspace{0.3cm}
+		\structure{Bang \& Robins (2005) 的精妙之处：} 通过一种特定的结果模型拟合方式，可以强制 $\Delta = 0$，从而让一个看似普通的回归插件估计量继承双稳健性。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{Bang \& Robins (2005) 双稳健插件估计量}
+		\textbf{Fine Point 13.2 的操作步骤：}
+		
+		\begin{enumerate}
+			\item \textbf{估计 IP 权重：} $W^A = 1/\widehat{f}(A|L)$
+			\item \textbf{构造辅助变量：}
+			\[
+			R = W^A \text{ if } A=1, \quad R = -W^A \text{ if } A=0
+			\]
+			等价于：
+			\[
+			R = \frac{A}{\widehat{\pi}(L)} - \frac{1-A}{1-\widehat{\pi}(L)}
+			\]
+			\item \textbf{拟合结果回归：} 用 canonical link 的 GLM 拟合 $\E[Y\mid A, L, R]$
+			\item \textbf{标准化预测：} 对所有人分别设 $A=1$ 和 $A=0$，求预测均值之差
+		\end{enumerate}
+		
+		\textbf{表面看：} 带额外协变量 $R$ 的结果回归，然后做 g-computation。\\
+		\textbf{实际上：} 由于 $R$ 的特殊构造，该估计量是\textbf{双稳健}的。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{技术核心 I：Clever Covariate 与模型设定}
+		将变量 $R$ 重新写成 \textbf{Clever Covariate}（Technical Point 13.3）：
+		\[
+		H(A,L) = \frac{\mathrm{I}(A=1) - \mathrm{I}(A=0)}{\widehat{f}(A|L)} = \frac{A}{\widehat{\pi}(L)} - \frac{1-A}{1-\widehat{\pi}(L)}
+		\]
+		
+		\textbf{模型设定（Canonical Link GLM）：}
+		\[
+		\E[Y\mid A,L] = \phi\!\left[\, m(A,L;\beta) \;+\; \theta \cdot H(A,L) \,\right]
+		\]
+		其中 $\phi[\cdot]$ 为 canonical link 的逆函数（identity, logit, log 等）。
+		
+		\vspace{0.3cm}
+		\textbf{为什么必须是 canonical link？}\\
+		因为在 canonical link 下，GLM 对协变量 $X_j$ 的得分方程具有\textbf{最简形式}：
+		\[
+		\sum_{i=1}^n X_{ij} \big(Y_i - \widehat{\mu}_i\big) = 0
+		\]
+		非 canonical link 下会出现额外的 $V(\mu)$ 和 $\partial\mu/\partial\eta$ 项，无法直接对应 AIPW 修正项。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{技术核心 II：得分方程的魔力}
+		\textbf{对 clever covariate $H(A,L)$ 的系数 $\theta$ 求解得分方程：}
+		\[
+		\sum_{i=1}^n H(A_i, L_i) \big(Y_i - \widehat{b}(A_i, L_i)\big) = 0
+		\]
+		
+		代入 $H(A,L)$ 的定义：
+		\[
+		\sum_{i=1}^n \frac{\mathrm{I}(A_i=1) - \mathrm{I}(A_i=0)}{\widehat{f}(A_i|L_i)} \big(Y_i - \widehat{b}(A_i, L_i)\big) = 0
+		\]
+		
+		\textbf{这正是 Slide 11 中的修正项 $\Delta$！}
+		
+		\vspace{0.3cm}
+		\textbf{因此：}
+		\begin{itemize}
+			\item 通过 IRLS（或任何求解 canonical link GLM 得分方程的方法）拟合该模型
+			\item 收敛时自动满足 $\Delta = 0$
+			\item 插件估计量 $P_n[\widehat{b}(1,L)] - P_n[\widehat{b}(0,L)]$ \textbf{精确等于} AIPW 估计量
+			\item \textbf{Bang \& Robins 的插件估计量隐式地求解了 AIPW 的估计方程}
+		\end{itemize}
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{从特例到一般框架：TMLE}
+		\textbf{Bang \& Robins 方法的局限：}
+		\begin{itemize}
+			\item 要求结果模型必须是\textbf{参数化 GLM}
+			\item 要求\textbf{一次性}将 clever covariate 作为协变量纳入模型
+			\item 在高维或复杂场景下（机器学习方法），无法直接套用
+		\end{itemize}
+		
+		\textbf{Targeted Minimum Loss Estimation (TMLE) 的两步架构：}
+		
+		\begin{center}
+			\begin{tabular}{cll}
+				\toprule
+				\textbf{步骤} & \textbf{任务} & \textbf{方法} \\
+				\midrule
+				Step 1 & 估计 nuisance $b(A,L)$ 和 $\pi(L)$ & \textbf{任意}方法（Super Learner, ML...） \\
+				Step 2 & 用一维参数 $\epsilon$ 和 clever covariate 修正 & 参数化子模型（fluctuation model） \\
+				\bottomrule
+			\end{tabular}
+		\end{center}
+		
+		\textbf{关键：} 初始估计与靶向更新\textbf{解耦}。复杂拟合交给机器学习，因果修正交给低维参数。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{为什么 TMLE 需要两步而非一步到位？}
+		\textbf{理由 1：兼容机器学习}\\
+		现代机器学习方法（梯度提升、深度学习）不是参数化 GLM，无法像 Bang \& Robins 那样直接把 $H(A,L)$ 当作协变量“塞进”模型联合优化。
+		
+		\textbf{理由 2：数值稳定性}\\
+		Clever covariate 包含 $1/\widehat{\pi}(L)$，在极端倾向得分下会爆炸。TMLE 先让初始估计吸收主要信号，再用残差 $Y - \widehat{b}_{\text{init}}$ 做小幅靶向修正，避免优化灾难。
+		
+		\textbf{理由 3：半参数效率性}\\
+		若 nuisance estimators 收敛速度达到 $n^{-1/4}$（ML + 交叉验证可实现），TMLE 能达到\textbf{半参数效率界}。
+		
+		\textbf{理由 4：模块化与通用性}\\
+		TMLE 不依赖于特定的损失函数或模型族。只要初始估计足够好，clever covariate 就能将其“靶向”修正为双稳健且有效的估计量。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{统一视角：三种方法的共同本质}
+		\textbf{三种方法外表迥异，但共享同一个核心机制：}
+		
+		\[
+		\text{插件估计量} - \text{修正项} = 0 \quad \Longleftrightarrow \quad \text{双稳健性成立}
+		\]
+		
+		\begin{center}
+			\begin{tabular}{p{3.5cm}p{9cm}}
+				\toprule
+				\textbf{方法} & \textbf{让修正项归零的路径} \\
+				\midrule
+				AIPW & \textbf{显式构造}：直接写出加权残差修正项，使其在估计方程中自然抵消 \\
+				Bang \& Robins & \textbf{隐式强制}：通过 canonical link GLM 的得分方程，将修正项作为 clever covariate 的估计方程强制归零 \\
+				TMLE & \textbf{靶向更新}：先用任意方法得到初始估计，再通过波动模型和最小损失投影，使修正项在更新后为零 \\
+				\bottomrule
+			\end{tabular}
+		\end{center}
+		
+		\textbf{不同的路径，同一个终点：} 偏差 = 结果误差 $\times$ 处理误差。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{总结}
+		\begin{center}
+			\begin{tabular}{p{3.5cm}p{9cm}}
+				\toprule
+				\textbf{概念} & \textbf{核心要点} \\
+				\midrule
+				单稳健 & 结果回归或 IPW 只依赖一个正确模型，偏差为一阶 \\
+				二阶偏差 & 双稳健估计量的偏差是两个 nuisance 误差的乘积，即使各为 $n^{-1/4}$，乘积可达 $n^{-1/2}$ \\
+				AIPW & 显式加权形式，直接展示结果回归与 IPW 的加权残差修正 \\
+				Bang \& Robins & 通过 canonical link GLM + clever covariate，\textbf{隐式}求解 AIPW 方程，得到双稳健插件估计量 \\
+				TMLE & 将双稳健思想推广到任意初始估计（尤其是机器学习），通过两步法保证双稳健与半参数效率 \\
+				\bottomrule
+			\end{tabular}
+		\end{center}
+		
+		\vspace{0.5cm}
+		\textbf{最终信息：}\\
+		双稳健估计的本质不是“两个模型取平均”，而是\textbf{通过估计方程的精巧构造，使偏差成为两个 nuisance 估计误差的乘积}。无论是 AIPW 的显式加权形式、Bang \& Robins 的隐式插件形式，还是 TMLE 的两步更新框架，它们共享同一个数学灵魂——\textbf{二阶偏差}。
+	\end{frame}
+	
+	%======================================================
+	\begin{frame}{参考文献}
+		\begin{itemize}
+			\item Hernán, M. A., \& Robins, J. M. (2025). \textit{Causal Inference: What If?} (2nd ed.). CRC Press. Chapter 13, Fine Point 13.2, Technical Points 13.2--13.3.
+			\item Bang, H., \& Robins, J. M. (2005). Doubly robust estimation in missing data and causal inference models. \textit{Biometrics}, 61(4), 962--973.
+			\item van der Laan, M. J., \& Rubin, D. B. (2006). Targeted maximum likelihood learning. \textit{UC Berkeley Division of Biostatistics Working Paper Series}.
+			\item Robins, J. M., Rotnitzky, A., \& Zhao, L. P. (1994). Estimation of regression coefficients when some regressors are not always observed. \textit{JASA}, 89(427), 846--866.
+		\end{itemize}
+	\end{frame}
+	
+\end{document}
