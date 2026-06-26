@@ -1,0 +1,1435 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+% ==================== 基础包 ====================
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{etoolbox}
+\usetikzlibrary{shapes,arrows,positioning,calc}
+
+% ==================== 颜色定义 ====================
+\definecolor{darkblue}{RGB}{26,82,118}
+\definecolor{lightblue}{RGB}{214,234,248}
+\definecolor{accentgreen}{RGB}{39,174,96}
+\definecolor{warnred}{RGB}{192,57,43}
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codeframe}{RGB}{200,200,200}
+\definecolor{darkgray}{RGB}{60,60,60}
+
+% ==================== Beamer主题设置 ====================
+\usetheme{Madrid}
+\usecolortheme[named=darkblue]{structure}
+\setbeamercolor{title}{fg=white,bg=darkblue}
+\setbeamercolor{frametitle}{fg=white,bg=darkblue}
+\setbeamercolor{block title}{fg=white,bg=darkblue}
+\setbeamercolor{block body}{bg=lightblue}
+\setbeamercolor{block title example}{fg=white,bg=accentgreen}
+\setbeamercolor{block body example}{bg=green!5}
+\setbeamercolor{block title alerted}{fg=white,bg=warnred}
+\setbeamercolor{block body alerted}{bg=red!5}
+\setbeamercolor{item}{fg=darkblue}
+\setbeamercolor{subitem}{fg=darkblue}
+\setbeamercolor{itemize item}{fg=darkblue}
+\setbeamercolor{itemize subitem}{fg=darkblue}
+\setbeamercolor{enumerate item}{fg=darkblue}
+\setbeamercolor{enumerate subitem}{fg=darkblue}
+
+% ---- 修复Headline：只显示当前section名，不显式导航条 ----
+\setbeamertemplate{headline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=0.8ex,leftskip=10pt]{palette quaternary}%
+      \usebeamerfont{section in head/foot}\insertsectionhead%
+    \end{beamercolorbox}%
+  }%
+}
+
+% ---- 修复Footline：确保三部分宽度正确 ----
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+      \usebeamerfont{author in head/foot}\insertshortauthor%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.50\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\insertshorttitle%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+      \usebeamerfont{date in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{2ex}%
+    \end{beamercolorbox}%
+  }%
+}
+
+% ==================== 代码样式 ====================
+\lstset{
+    language=R,
+    basicstyle=\ttfamily\footnotesize,
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    keywordstyle=\color{darkblue}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{accentgreen},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=5pt,
+    tabsize=2,
+    xleftmargin=10pt,
+    xrightmargin=5pt,
+    aboveskip=5pt,
+    belowskip=5pt,
+    extendedchars=true,
+    columns=fullflexible,
+    keepspaces=true,
+    morekeywords={mmrm,us,cs,ar1,toep,emmeans,pairs,VarCorr,summary,library,data,proc,mixed,class,model,repeated,lsmeans,ddfm,method,reml,fit,formula,control,optimizer,vcov,tidy,glance,augment,component,df_1d,df_md,contrast}
+}
+
+% ==================== 数学符号简写 ====================
+\newcommand{\bY}{\mathbf{Y}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bX}{\mathbf{X}}
+\newcommand{\bZ}{\mathbf{Z}}
+\newcommand{\bbeta}{\boldsymbol{\beta}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\balpha}{\boldsymbol{\alpha}}
+\newcommand{\bepsilon}{\boldsymbol{\epsilon}}
+\newcommand{\bSigma}{\boldsymbol{\Sigma}}
+\newcommand{\bOmega}{\boldsymbol{\Omega}}
+\newcommand{\bPsi}{\boldsymbol{\Psi}}
+\newcommand{\bLambda}{\boldsymbol{\Lambda}}
+\newcommand{\bI}{\mathbf{I}}
+\newcommand{\bD}{\mathbf{D}}
+\newcommand{\bP}{\mathbf{P}}
+\newcommand{\bS}{\mathbf{S}}
+\newcommand{\bi}{\mathbf{b}_i}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\argmin}{\mathop{\arg\min}}
+
+% ==================== 标题信息 ====================
+\title[MMRM教学]{Mixed Model for Repeated Measures (MMRM)\\
+LMM与MMRM}
+\author[MMRM Tutorial]{Guo Wei}
+\institute{Department of Health Statistics, NMU}
+\date{2026-06-11}
+
+% ==================== 文档开始 ====================
+\begin{document}
+
+%---------------------------------------------------
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{目录}
+\tableofcontents
+\end{frame}
+
+%===================================================
+\section{引言：纵向数据与重复测量}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}{纵向数据（Longitudinal Data）}
+\begin{block}{定义}
+对同一受试者（subject）在\textbf{多个时间点}重复测量同一指标所得到的数据。
+\end{block}
+
+\vspace{0.2cm}
+\textbf{典型场景：}
+\begin{itemize}
+    \item 临床试验：基线、第2周、第4周、第8周的疗效评分
+    \item 流行病学：随访调查中的多次血压测量
+    \item 心理学：干预前、干预后、随访期的量表得分
+\end{itemize}
+
+\vspace{0.2cm}
+\begin{alertblock}{核心挑战}
+\begin{enumerate}
+    \item \textbf{相关性}：同一受试者的多次测量之间存在相关性
+    \item \textbf{缺失数据}：受试者可能在某些时间点失访或退出
+    \item \textbf{异方差}：不同时间点的变异程度可能不同
+\end{enumerate}
+\end{alertblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{分析策略的演进}
+\begin{center}
+\begin{tikzpicture}[
+    node distance=1.4cm,
+    box/.style={rectangle, draw=darkblue, fill=lightblue, rounded corners,
+                minimum width=2.4cm, minimum height=1cm, align=center, font=\footnotesize},
+    arrow/.style={->, >=stealth, thick, darkblue}
+]
+\node[box] (ancova) {ANCOVA\\（单时间点）};
+\node[box, right=of ancova] (locf) {LOCF\\（末次观测结转）};
+\node[box, right=of locf] (gee) {GEE\\（广义估计方程）};
+\node[box, right=of gee] (mmrm) {MMRM\\（重复测量混合）};
+
+\draw[arrow] (ancova) -- (locf);
+\draw[arrow] (locf) -- (gee);
+\draw[arrow] (gee) -- (mmrm);
+
+\node[below=0.25cm of locf, font=\tiny, text=warnred] {有偏估计，低估SE};
+\node[below=0.25cm of gee, font=\tiny, text=darkblue] {稳健但效率低};
+\node[below=0.25cm of mmrm, font=\tiny, text=accentgreen] {\textbf{当前金标准}};
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.3cm}
+\begin{block}{为什么MMRM成为金标准？}
+\begin{itemize}
+    \item 2010年NRC报告明确反对LOCF等单一插补法
+    \item EMA缺失数据指南推荐基于似然的方法
+    \item MMRM在MAR假设下无需显式插补即可利用所有观测数据
+\end{itemize}
+\end{block}
+\end{frame}
+
+%===================================================
+\section{传统线性混合模型（LMM）原理}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}{LMM的基本框架}
+\begin{block}{Laird \& Ware (1982) 基本线性混合效应模型}
+对第 $i$ 个受试者，其 $n_i$ 维响应向量 $\by_i$：
+\[
+\by_i = \bX_i \bbeta + \bZ_i \bi + \bepsilon_i, \quad i = 1, \dots, M
+\]
+\end{block}
+
+\vspace{0.1cm}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\textbf{模型组成：}
+\begin{itemize}
+    \item $\bbeta$：$p$ 维\textbf{固定效应}向量
+    \item $\bi$：$q$ 维\textbf{随机效应}向量
+    \item $\bX_i$：$n_i \times p$ 固定效应设计矩阵
+    \item $\bZ_i$：$n_i \times q$ 随机效应设计矩阵
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{分布假设：}
+\begin{align*}
+\bi &\sim N(\mathbf{0}, \bPsi) \\
+\bepsilon_i &\sim N(\mathbf{0}, \sigma^2 \bI) \\
+\bi &\perp\!\!\!\perp \bepsilon_i
+\end{align*}
+\end{column}
+\end{columns}
+
+\vspace{0.1cm}
+\begin{exampleblock}{关键特征}
+随机效应 $\bi$ 描述每个受试者相对于总体均值的\textbf{偏移}（均值为0）。
+\end{exampleblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{LMM的方差-协方差分解}
+\begin{block}{响应变量的方差-协方差矩阵}
+\[
+\Var(\by_i) = \bSigma_i = \underbrace{\bZ_i \bPsi \bZ_i^\top}_{\text{G-side（随机效应）}} + \underbrace{\sigma^2 \bI}_{\text{R-side（残差）}}
+\]
+\end{block}
+
+\vspace{0.2cm}
+\textbf{两部分竞争与权衡：}
+\begin{itemize}
+    \item \textbf{G-side}：通过随机效应捕捉受试者\textbf{间}变异
+    \item \textbf{R-side}：通过残差结构捕捉受试者\textbf{内}相关
+\end{itemize}
+
+\vspace{0.2cm}
+\begin{alertblock}{重要提醒}
+当两部分同时复杂时，可能出现\textbf{不可识别性}问题。实践中通常只使用其中一侧。
+\end{alertblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{LMM的扩展：异方差与相关残差}
+\begin{block}{扩展模型}
+将基本LMM的残差假设放宽为：$\bepsilon_i \sim N(\mathbf{0}, \bLambda_i)$，其中 $\bLambda_i$ 由参数 $\btheta$ 参数化。
+\end{block}
+
+\textbf{扩展后的完整方差-协方差：}\vspace{-0.2cm}
+\[
+\Var(\by_i) = \bSigma_i = \bZ_i \bPsi \bZ_i^\top + \bLambda_i
+\]
+
+\vspace{-0.1cm}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\textbf{可建模的R-side结构：}
+\begin{itemize}
+    \item 异方差（不同时间点方差不同）
+    \item 自相关（AR1）、复合对称（CS）
+    \item 非结构化（UN）、Toeplitz
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{exampleblock}{文献记号}
+在SAS和混合模型文献中：
+\begin{itemize}
+    \item G-side = 随机效应成分
+    \item R-side = 残差/within-subject成分
+\end{itemize}
+（Cnaan, Laird \& Slasor, 1997）
+\end{exampleblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{LMM在纵向数据中的局限}
+\begin{block}{基本LMM的隐含假设}
+原始LMM假设 within-subject 误差满足 $\bepsilon_i \sim N(\mathbf{0}, \sigma^2 \bI)$，即\textbf{独立、同方差}。
+\end{block}
+
+\vspace{0.2cm}
+\textbf{纵向数据中的现实：}
+\begin{enumerate}
+    \item \textbf{相关性}：同一受试者相邻时间点测量高度相关
+    \item \textbf{异方差}：后期测量的变异通常大于早期
+    \item \textbf{不平衡}：不同受试者观测时间点可能不同
+\end{enumerate}
+
+\vspace{0.2cm}
+\begin{alertblock}{结论}
+仅通过G-side随机效应往往\textbf{不足以}充分刻画within-subject相关结构。需要更灵活的R-side建模——这正是MMRM的核心思想。
+\end{alertblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{LMM的估计：REML vs ML}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{两种似然估计}
+\begin{itemize}
+    \item \textbf{ML}：最大化完整似然
+    \item \textbf{REML}：最大化残差似然，对固定效应校正
+\end{itemize}
+\end{block}
+
+\textbf{REML的优势：}
+\begin{itemize}
+    \item 方差分量估计\textbf{偏差更小}
+    \item 平衡设计中等价于ANOVA估计
+    \item 临床试验\textbf{默认使用REML}
+\end{itemize}
+
+\textbf{ML的用途：}
+\begin{itemize}
+    \item 模型比较（AIC、BIC）
+    \item 嵌套模型似然比检验
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{exampleblock}{REML目标函数}
+\[
+\ell_{REML}(\btheta) = \ell_{ML}(\btheta) - \frac{1}{2} \log |\bX^\top \bSigma^{-1} \bX|
+\]
+\vspace{0.1cm}
+第二项为固定效应的校正项。
+\end{exampleblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+%===================================================
+\section{MMRM原理与模型结构}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}{MMRM的定义}
+\begin{block}{Mixed Model for Repeated Measures (MMRM)}
+MMRM是一种基于似然的方法，用于分析在\textbf{同一受试者上重复测量}的连续结局变量。核心特征：
+\begin{enumerate}
+    \item \textbf{仅含固定效应}的均值模型
+    \item 通过\textbf{结构化残差协方差矩阵} $\bSigma$ 直接建模受试者内相关性
+    \item 参数通过\textbf{REML}估计
+\end{enumerate}
+\end{block}
+
+\vspace{0.2cm}
+\begin{alertblock}{重要澄清}
+MMRM虽然名为``混合模型''，但经典临床试验中的MMRM\textbf{通常不含随机效应}（如随机截距或斜率）。焦点在\textbf{残差协方差结构}（R-side）而非随机效应（G-side）。
+\end{alertblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{MMRM的数学模型}
+\begin{block}{个体层面模型}
+对第 $i$ 个受试者，其基线后测量向量 $\by_i$：
+\[
+\by_i = \bX_i \bbeta + \bepsilon_i, \quad \bepsilon_i \sim N(\mathbf{0}, \bSigma_i)
+\]
+\end{block}
+
+\vspace{-0.1cm}
+\textbf{其中：}
+\begin{itemize}
+    \item $\bX_i$：固定效应设计矩阵（治疗、访视、交互、协变量）
+    \item $\bbeta$：固定效应回归系数
+    \item $\bSigma_i$：受试者 $i$ 的within-subject协方差矩阵
+\end{itemize}
+
+\vspace{0.1cm}
+\begin{block}{试验整体模型}
+将所有 $n$ 个受试者合并：$\bY = \bX \bbeta + \bepsilon$，\quad $\bepsilon \sim N(\mathbf{0}, \bOmega)$
+
+其中 $\bOmega = \diag(\bSigma_1, \bSigma_2, \dots, \bSigma_M)$ 为\textbf{块对角矩阵}。
+\end{block}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{MMRM作为LMM的特例}
+\begin{block}{从LMM到MMRM的简化}
+在LMM的一般形式中：$\Var(\by_i) = \underbrace{\bZ_i \bPsi \bZ_i^\top}_{\text{G-side}} + \underbrace{\bLambda_i}_{\text{R-side}}$
+
+MMRM选择\textbf{省略G-side}，仅保留R-side：$\Var(\by_i) = \bSigma_i = \bLambda_i$
+\end{block}
+
+\vspace{0.2cm}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.52\textwidth}
+\textbf{为什么可以省略G-side？}
+\begin{itemize}
+    \item 纵向试验中within-subject相关性是主要关注点
+    \item 结构化协方差矩阵已能充分捕捉相关性
+    \item 避免G-side与R-side的不可识别问题
+\end{itemize}
+\end{column}
+\begin{column}{0.44\textwidth}
+\begin{exampleblock}{\footnotesize Mallinckrodt et al. (2008)}
+\footnotesize ``在仅有一级分组的纵向研究中，within-subject成分尤为重要，额外的随机效应成分往往并非严格必需。''
+\end{exampleblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{MMRM的固定效应结构}
+\begin{block}{典型的确证性试验MMRM}
+$\bY = \bX \bbeta + \bepsilon$
+\end{block}
+
+\vspace{0.1cm}
+\textbf{固定效应通常包括：}
+\begin{enumerate}
+    \item \textbf{治疗组}（Treatment）：随机化分组
+    \item \textbf{访视}（Visit）：作为\textbf{分类因子}，每个计划时间点单独估计
+    \item \textbf{治疗$\times$访视交互}：得到每个访视的治疗效应
+    \item \textbf{基线值}（Baseline）：结局变量的基线测量
+    \item \textbf{基线$\times$访视交互}（可选）
+    \item \textbf{分层因子}：随机化分层因素
+\end{enumerate}
+
+\vspace{0.1cm}
+\begin{alertblock}{关键设计选择}
+将访视作为\textbf{分类变量}（而非连续时间）是MMRM的标志性特征——允许治疗效应随时间呈现\textbf{任意形状}。
+\end{alertblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{MMRM中的协方差矩阵构造}
+\begin{block}{个体协方差矩阵}
+设共有 $m$ 个计划访视，总体协方差矩阵为 $\bSigma \in \mathbb{R}^{m \times m}$。对第 $i$ 个受试者：
+\vspace{-0.2cm}
+\[
+\bSigma_i = \bS_i^\top \bSigma \bS_i
+\]
+\vspace{-0.2cm}
+其中 $\bS_i \in \{0,1\}^{m \times m_i}$ 为受试者特定的``子集矩阵''。
+\end{block}
+
+\textbf{示例}（4个访视，受试者缺失VIS3）：
+\[
+\small
+\bS_i = \begin{pmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 1 \end{pmatrix}, \quad
+\bSigma_i = \begin{pmatrix} \sigma_{11} & \sigma_{12} & \sigma_{14} \\ \sigma_{21} & \sigma_{22} & \sigma_{24} \\ \sigma_{41} & \sigma_{42} & \sigma_{44} \end{pmatrix}
+\]
+
+\begin{exampleblock}{块对角整体矩阵}
+\vspace{-0.2cm}
+$\bOmega = \diag(\bSigma_1, \bSigma_2, \dots, \bSigma_M)$\quad\quad 受试者间独立，受试者内相关。
+\end{exampleblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{MMRM的估计与推断}
+\begin{block}{REML估计}
+\vspace{-0.2cm}
+MMRM通过最大化残差似然估计 $\bbeta$ 和协方差参数 $\btheta$：
+\[
+\small
+\ell_{REML}(\btheta) = -\frac{1}{2} \sum_{i=1}^{M} \left[ \log |\bSigma_i| + (\by_i - \bX_i \hat{\bbeta})^\top \bSigma_i^{-1} (\by_i - \bX_i \hat{\bbeta}) \right] + C
+\]
+\end{block}
+
+\vspace{-0.3cm}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.58\textwidth}
+\textbf{固定效应估计（GLS）：}
+\vspace{-0.3cm}
+\[
+\footnotesize
+\hat{\bbeta} = \left( \sum_{i} \bX_i^\top \bSigma_i^{-1} \bX_i \right)^{-1} \sum_{i} \bX_i^\top \bSigma_i^{-1} \by_i
+\]
+\end{column}
+\begin{column}{0.38\textwidth}
+\textbf{方差-协方差：}
+\vspace{-0.3cm}
+\[
+\footnotesize
+\Var(\hat{\bbeta}) = \left( \sum_{i} \bX_i^\top \bSigma_i^{-1} \bX_i \right)^{-1}
+\]
+\end{column}
+\end{columns}
+\end{frame}
+
+%===================================================
+\section{协方差结构详解}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}{协方差结构概述}
+\begin{block}{协方差矩阵的分解}
+多数协方差结构采用：$\bSigma = \bD \bP \bD$
+
+其中 $\bD = \diag(\sigma_1, \dots, \sigma_m)$ 为标准差对角矩阵，$\bP$ 为相关矩阵。
+\end{block}
+
+\textbf{``异质性''（Heterogeneous）vs ``同质性''（Homogeneous）：}
+\begin{itemize}
+    \item \textbf{异质性}：允许不同时间点有不同方差
+    \item \textbf{同质性}：假设所有时间点方差相同
+\end{itemize}
+
+\begin{alertblock}{参数数量}
+参数数量 $k$ 取决于结构复杂度。UN需要 $k = m(m+1)/2$ 个参数，是``最自由''的结构。
+\end{alertblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{非结构化协方差（Unstructured, UN）}
+\begin{block}{定义}
+不对协方差矩阵施加任何结构约束——每个方差和每个协方差都单独估计。
+\end{block}
+
+\vspace{0.1cm}
+\textbf{4个访视的UN矩阵：}
+\vspace{-0.2cm}
+\[
+\bSigma = \begin{pmatrix}
+\sigma_1^2 & \sigma_{12} & \sigma_{13} & \sigma_{14} \\
+\sigma_{21} & \sigma_2^2 & \sigma_{23} & \sigma_{24} \\
+\sigma_{31} & \sigma_{32} & \sigma_3^2 & \sigma_{34} \\
+\sigma_{41} & \sigma_{42} & \sigma_{43} & \sigma_4^2
+\end{pmatrix}
+\]
+
+\vspace{-0.1cm}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\textbf{优点：}
+\begin{itemize}
+    \item 假设最少，最灵活
+    \item 确证性试验的\textbf{监管默认}
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{缺点：}
+\begin{itemize}
+    \item 参数最多：$k = m(m+1)/2$
+    \item 访视多或样本小时\textbf{可能不收敛}
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{复合对称（CS）与一阶自回归（AR1）}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{\footnotesize 复合对称 CS}
+\footnotesize
+假设任意两个时间点间相关恒定：$\rho_{ij} = \rho$
+
+\textbf{同质CS}（$k=2$）：
+\vspace{-0.2cm}
+\[
+\footnotesize
+\bSigma = \sigma^2 \begin{pmatrix}
+1 & \rho & \rho & \rho \\
+\rho & 1 & \rho & \rho \\
+\rho & \rho & 1 & \rho \\
+\rho & \rho & \rho & 1
+\end{pmatrix}
+\]
+\vspace{-0.1cm}
+\textcolor{warnred}{\footnotesize\textbf{注意}：纵向数据中CS通常不现实}
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{\footnotesize 一阶自回归 AR1}
+\footnotesize
+相关随时间间隔几何衰减：$\rho_{ij} = \rho^{|i-j|}$
+
+\textbf{同质AR1}（$k=2$）：
+\vspace{-0.2cm}
+\[
+\footnotesize
+\bSigma = \sigma^2 \begin{pmatrix}
+1 & \rho & \rho^2 & \rho^3 \\
+\rho & 1 & \rho & \rho^2 \\
+\rho^2 & \rho & 1 & \rho \\
+\rho^3 & \rho^2 & \rho & 1
+\end{pmatrix}
+\]
+\vspace{-0.1cm}
+\textcolor{accentgreen}{\footnotesize\textbf{适用}：等距访视，相关随时间递减}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{Toeplitz与Ante-dependence}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{\footnotesize Toeplitz}
+\footnotesize
+相关仅取决于时间\textbf{间隔}（lag）：$\rho_{ij} = \rho_{|i-j|}$
+
+\textbf{4个访视的Toeplitz}：
+\vspace{-0.2cm}
+\[
+\footnotesize
+\bP = \begin{pmatrix}
+1 & \rho_1 & \rho_2 & \rho_3 \\
+\rho_1 & 1 & \rho_1 & \rho_2 \\
+\rho_2 & \rho_1 & 1 & \rho_1 \\
+\rho_3 & \rho_2 & \rho_1 & 1
+\end{pmatrix}
+\]
+\vspace{-0.1cm}
+参数：$k = m$（同质）或 $2m-1$（异质）
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{\footnotesize Ante-dependence (AD)}
+\footnotesize
+一阶ante-dependence模型：$\rho_{ij} = \prod_{k=i}^{j-1} \rho_k$
+
+\textbf{4个访视的AD}：
+\vspace{-0.2cm}
+\[
+\footnotesize
+\bP = \begin{pmatrix}
+1 & \rho_1 & \rho_1\rho_2 & \rho_1\rho_2\rho_3 \\
+\rho_1 & 1 & \rho_2 & \rho_2\rho_3 \\
+\rho_1\rho_2 & \rho_2 & 1 & \rho_3 \\
+\rho_1\rho_2\rho_3 & \rho_2\rho_3 & \rho_3 & 1
+\end{pmatrix}
+\]
+\vspace{-0.1cm}
+参数：$k = m$（同质）或 $2m-1$（异质）
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{协方差结构选择策略}
+\begin{block}{确证性试验的推荐策略（Mallinckrodt et al.）}
+\begin{enumerate}
+    \item \textbf{首选UN}：预设非结构化协方差为首要分析
+    \item \textbf{预设fallback}：在方案中预先指定UN不收敛时的替代结构
+    \item \textbf{常见fallback}：Toeplitz或AR1（异质性版本）
+    \item \textbf{避免CS}：复合对称在纵向数据中通常不现实
+\end{enumerate}
+\end{block}
+
+\vspace{0.2cm}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{结构} & \textbf{参数} & \textbf{假设强度} & \textbf{适用场景} \\
+\midrule
+UN & $m(m+1)/2$ & 最弱 & 小样本、确证性试验 \\
+Toeplitz & $2m-1$ & 中等 & 相关仅依赖lag \\
+AR1 & $m+1$ & 较强 & 等距访视、几何衰减 \\
+CS & $m+1$ & 最强 & 极少用于纵向数据 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{frame}
+
+%===================================================
+\section{缺失数据机制与MMRM的优势}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}{缺失数据的三类机制}
+\begin{block}{Rubin (1976) 缺失数据分类}
+\begin{enumerate}
+    \item \textbf{MCAR}（Missing Completely at Random）
+    \begin{itemize}
+        \item 缺失与任何数据（观测或未观测）均无关
+        \item 例如：实验室设备故障导致某批次样本丢失
+    \end{itemize}
+    \item \textbf{MAR}（Missing at Random）
+    \begin{itemize}
+        \item 缺失仅依赖于\textbf{观测数据}（如早期测量值、治疗组、基线）
+        \item 例如：病情较重的患者更可能退出
+    \end{itemize}
+    \item \textbf{MNAR}（Missing Not at Random）
+    \begin{itemize}
+        \item 缺失依赖于\textbf{未观测值本身}
+        \item 例如：患者因疗效差而退出，且该疗效差未被记录
+    \end{itemize}
+\end{enumerate}
+\end{block}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{MMRM在MAR下的有效性}
+\begin{block}{MMRM的核心优势}
+作为\textbf{基于似然的方法}，MMRM在MAR假设下：
+\begin{itemize}
+    \item 无需任何显式插补
+    \item 自动利用每个受试者的\textbf{所有可用观测}
+    \item 通过联合建模所有访视，隐式处理缺失
+\end{itemize}
+\end{block}
+
+\vspace{0.1cm}
+\textbf{似然构建方式：}对第 $i$ 个受试者，仅使用其观测访视构建似然：
+\vspace{-0.2cm}
+\[
+\small
+\ell_i(\bbeta, \btheta) \propto -\frac{1}{2} \left[ \log |\bSigma_i^{obs}| + (\by_i^{obs} - \bX_i^{obs}\bbeta)^\top (\bSigma_i^{obs})^{-1} (\by_i^{obs} - \bX_i^{obs}\bbeta) \right]
+\]
+
+\vspace{0.1cm}
+\begin{exampleblock}{与LOCF的对比}
+\begin{itemize}
+    \item LOCF：将末次观测``结转''到终点，\textbf{低估变异}
+    \item 完整案例分析：丢弃所有缺失受试者，\textbf{损失信息}
+    \item MMRM：利用所有信息，在MAR下\textbf{无偏且有效}
+\end{itemize}
+\end{exampleblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{方法对比总结}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{方法} & \textbf{使用数据} & \textbf{缺失处理} & \textbf{有效性} \\
+\midrule
+LOCF + ANCOVA & 单终点 & 单一插补 & \textcolor{warnred}{有偏，低估SE} \\
+完整案例ANCOVA & 完成者 & 删除缺失 & \textcolor{warnred}{损失功效} \\
+GEE & 所有观测 & 工作相关矩阵 & 需MCAR才无偏 \\
+\textbf{MMRM} & \textbf{所有访视联合} & \textbf{似然隐式处理} & \textcolor{accentgreen}{\textbf{MAR下有效}} \\
+多重插补 & 所有观测 & 多次插补 & MAR下有效 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2cm}
+\begin{alertblock}{监管立场}
+\begin{itemize}
+    \item 2010年NRC报告：明确反对LOCF等单一插补法作为主要分析
+    \item EMA缺失数据指南：推荐基于似然的方法（MMRM）和多重插补
+    \item FDA/EMA审评中，MMRM是连续终点确证性试验的\textbf{de facto标准}
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+%===================================================
+\section{LMM与MMRM：联系、区别与选择}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}{LMM与MMRM的联系}
+\begin{block}{数学层面的包含关系}
+MMRM是LMM的\textbf{特例}：
+\begin{itemize}
+    \item LMM的一般形式：$\by_i = \bX_i\bbeta + \bZ_i\bi + \bepsilon_i$
+    \item MMRM的形式：$\by_i = \bX_i\bbeta + \bepsilon_i$，其中 $\bepsilon_i \sim N(\mathbf{0}, \bSigma_i)$
+\end{itemize}
+即MMRM = LMM中令 $\bZ_i\bi = \mathbf{0}$，并将所有相关性放入R-side。
+\end{block}
+
+\vspace{0.2cm}
+\textbf{共同特征：}
+\begin{enumerate}
+    \item 均基于线性模型框架，均使用REML/ML进行估计
+    \item 均可处理不平衡数据，均支持协变量调整
+    \item 在SAS中均通过PROC MIXED实现
+\end{enumerate}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{LMM与MMRM的核心区别}
+\begin{center}
+\small
+\begin{tabular}{p{3cm}p{4.2cm}p{4.2cm}}
+\toprule
+\textbf{特征} & \textbf{传统LMM} & \textbf{MMRM} \\
+\midrule
+随机效应 & 通常包含（随机截距/斜率） & \textbf{通常不含} \\
+相关建模 & G-side + R-side & \textbf{仅R-side} \\
+协方差焦点 & 受试者间变异 & 受试者内相关 \\
+典型应用 & 多中心试验、聚类数据 & 纵向重复测量 \\
+参数解释 & 随机效应方差有意义 & 协方差结构为``讨厌参数'' \\
+SAS语句 & \texttt{random} + \texttt{repeated} & 主要\texttt{repeated} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2cm}
+\begin{exampleblock}{一句话总结}
+\begin{itemize}
+    \item LMM：``我关心受试者之间的差异有多大''
+    \item MMRM：``我关心同一受试者多次测量如何相关，但只想得到治疗效应的准确估计''
+\end{itemize}
+\end{exampleblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{应用场景选择指南}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{选择LMM当…}
+\begin{itemize}
+    \item 研究问题关注\textbf{受试者间变异}
+    \item 需要预测个体轨迹
+    \item 多层级结构（如患者嵌套在医院内）
+    \item 随机效应本身有科学意义
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{选择MMRM当…}
+\begin{itemize}
+    \item 主要目标是\textbf{组间比较}（如治疗vs安慰剂）
+    \item 数据来自临床试验的\textbf{计划访视}
+    \item 需要处理\textbf{MAR缺失数据}
+    \item 需要与SAS/监管标准保持一致
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+
+\vspace{0.2cm}
+\begin{alertblock}{注意}
+在某些场景下两者可\textbf{混合使用}：例如多中心纵向试验中，中心作为随机效应（G-side），访视内相关用R-side结构建模。
+\end{alertblock}
+\end{frame}
+
+%===================================================
+\section{R实现：mmrm包与nlme}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}[fragile]{mmrm包简介}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.50\textwidth}
+\begin{block}{openpharma/mmrm}
+\footnotesize
+由openpharma社区维护的R包，专为临床试验MMRM设计：
+\begin{itemize}
+    \item 快速、稳定的优化器
+    \item 支持多种协方差结构
+    \item 内置Satterthwaite和Kenward-Roger自由度调整
+    \item 与\texttt{emmeans}无缝集成
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.46\textwidth}
+\begin{lstlisting}[language=R,basicstyle=\ttfamily\scriptsize]
+# Install mmrm package
+install.packages("mmrm")
+library(mmrm)
+
+# Load example data
+data("fev_data", package = "mmrm")
+\end{lstlisting}
+\end{column}
+\end{columns}
+
+\vspace{0.1cm}
+\begin{exampleblock}{\footnotesize fev\_data Structure}
+\footnotesize
+\begin{itemize}
+    \item \texttt{FEV1}：结局变量（肺功能指标）
+    \item \texttt{ARMCD}：治疗组（TRT / PBO）
+    \item \texttt{AVISIT}：访视（VIS1--VIS4）
+    \item \texttt{USUBJID}：受试者ID
+\end{itemize}
+\end{exampleblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[fragile]{mmrm基本语法}
+\begin{block}{标准MMRM模型}
+\begin{lstlisting}[language=R,basicstyle=\ttfamily\scriptsize]
+fit <- mmrm(
+  formula = FEV1 ~ RACE + SEX + ARMCD * AVISIT 
+           + us(AVISIT | USUBJID),
+  data = fev_data, reml = TRUE
+)
+\end{lstlisting}
+\end{block}
+
+\textbf{公式解析：}
+\begin{itemize}
+    \item \texttt{FEV1 \textasciitilde\ ...}：结局变量
+    \item \texttt{RACE + SEX}：协变量
+    \item \texttt{ARMCD * AVISIT}：治疗、访视及其交互
+    \item \texttt{us(AVISIT | USUBJID)}：\textbf{非结构化协方差}，按访视在受试者内
+\end{itemize}
+
+\vspace{0.1cm}
+\begin{exampleblock}{协方差结构切换}
+\texttt{us()} $\rightarrow$ \texttt{cs()}（复合对称）\quad
+\texttt{us()} $\rightarrow$ \texttt{ar1()}（一阶自回归）\quad
+\texttt{us()} $\rightarrow$ \texttt{toep()}（Toeplitz）
+\end{exampleblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[fragile]{自由度调整方法}
+\begin{block}{mmrm支持的自由度方法}
+\begin{lstlisting}[language=R,basicstyle=\ttfamily\scriptsize]
+# Satterthwaite (default)
+fit_sw <- mmrm(
+  formula = FEV1 ~ ARMCD * AVISIT + us(AVISIT | USUBJID),
+  data = fev_data, method = "Satterthwaite"
+)
+
+# Kenward-Roger
+fit_kr <- mmrm(
+  formula = FEV1 ~ ARMCD * AVISIT + us(AVISIT | USUBJID),
+  data = fev_data, method = "Kenward-Roger"
+)
+\end{lstlisting}
+\end{block}
+
+\vspace{0.1cm}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\textbf{Satterthwaite}
+\begin{itemize}
+    \item 基于渐近方差
+    \item 计算更快
+    \item 大样本下与KR接近
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Kenward-Roger}
+\begin{itemize}
+    \item 调整系数方差-协方差
+    \item 小样本更保守
+    \item 确证性试验常用
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[fragile]{emmeans：最小二乘均值与对比}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{估计各访视的治疗差异}
+\begin{lstlisting}[language=R,basicstyle=\ttfamily\scriptsize]
+library(emmeans)
+
+# LS means by visit
+emm <- emmeans(fit, ~ ARMCD | AVISIT)
+
+# Treatment contrast
+pairs(emm, reverse = TRUE)
+\end{lstlisting}
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{\footnotesize Output (partial):}
+\begin{lstlisting}[language=R,numbers=none,basicstyle=\ttfamily\tiny]
+AVISIT = VIS1:
+ contrast estimate SE  df t.ratio p.value
+ TRT-PBO   3.77 1.07 146  3.514 0.0006
+
+AVISIT = VIS4:
+ contrast estimate SE  df t.ratio p.value
+ TRT-PBO   4.40 1.68 133  2.617 0.0099
+\end{lstlisting}
+\end{column}
+\end{columns}
+
+\vspace{0.1cm}
+\begin{alertblock}{Primary Endpoint}
+Treatment difference at final visit (VIS4) is usually the \textbf{primary endpoint estimate}.
+\end{alertblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[fragile]{mmrm结果解读}
+\begin{block}{summary(fit) Output Highlights}
+\begin{lstlisting}[language=R,numbers=none,basicstyle=\ttfamily\tiny]
+Coefficients:
+                      Estimate Std.Error    df t value Pr(>|t|)
+(Intercept)           30.77748   0.88656 218.8  34.715  <2e-16 ***
+ARMCDTRT               3.77423   1.07415 145.6   3.514 0.000589 ***
+AVISITVIS4            15.05390   1.31281 138.5  11.467  <2e-16 ***
+ARMCDTRT:AVISITVIS4    0.62423   1.85085 129.7   0.337 0.736463
+\end{lstlisting}
+\end{block}
+
+\textbf{Interpretation Checklist:}
+\begin{enumerate}
+    \item \textbf{Convergence}: confirm optimizer converged (code = 0)
+    \item \textbf{Covariance}: check variances positive, correlations reasonable
+    \item \textbf{Fixed effects}: focus on treatment$\times$visit interaction
+    \item \textbf{Final visit}: use emmeans to get LSM difference
+    \item \textbf{Degrees of freedom}: note Satterthwaite/KR adjusted df
+\end{enumerate}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[fragile]{nlme::gls：替代实现}
+\begin{block}{使用nlme包复现UN-MMRM}
+\begin{lstlisting}[language=R,basicstyle=\ttfamily\scriptsize]
+library(nlme)
+
+fit_gls <- gls(
+  FEV1 ~ RACE + SEX + ARMCD * AVISIT,
+  data = fev_data,
+  correlation = corSymm(form = ~ as.integer(AVISIT) | USUBJID),
+  weights = varIdent(form = ~ 1 | AVISIT),
+  na.action = na.omit, method = "REML"
+)
+\end{lstlisting}
+\end{block}
+
+\textbf{组件对应：}
+\begin{itemize}
+    \item \texttt{corSymm}：非结构化\textbf{相关}矩阵
+    \item \texttt{varIdent}：访视特异性\textbf{方差}（异质性）
+    \item 两者组合 = 非结构化协方差矩阵
+\end{itemize}
+
+\begin{alertblock}{注意事项}
+\texttt{gls}较慢、更易收敛失败，且\textbf{不直接支持Kenward-Roger自由度}。新分析推荐使用\texttt{mmrm}包。
+\end{alertblock}
+\end{frame}
+
+%===================================================
+\section{SAS实现：PROC MIXED}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}[fragile]{PROC MIXED基本语法}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.52\textwidth}
+\begin{block}{SAS代码：UN-MMRM + KR}
+\begin{lstlisting}[language=R,numbers=none,basicstyle=\ttfamily\scriptsize]
+proc mixed data=fev method=reml;
+  class usubjid armcd avisit race sex;
+  model fev1 = race sex armcd avisit 
+         armcd*avisit / ddfm=kr;
+  repeated avisit / subject=usubjid 
+           type=un;
+  lsmeans armcd*avisit / diff;
+run;
+\end{lstlisting}
+\end{block}
+\end{column}
+\begin{column}{0.44\textwidth}
+\textbf{关键语句解析：}
+\begin{itemize}
+    \item \texttt{class}：声明分类变量
+    \item \texttt{model}：固定效应模型
+    \item \texttt{ddfm=kr}：Kenward-Roger
+    \item \texttt{repeated}：R-side协方差
+    \item \texttt{type=un}：非结构化
+    \item \texttt{lsmeans}：最小二乘均值
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{SAS关键选项详解}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{MODEL语句选项}
+\begin{itemize}
+    \item \texttt{ddfm=kr}：Kenward-Roger
+    \item \texttt{ddfm=kr(linear)}：线性KR
+    \item \texttt{ddfm=satterthwaite}：Satterthwaite
+    \item \texttt{ddfm=bw}：Between-Within
+    \item \texttt{ddfm=residual}：残差df
+    \item \texttt{solution}：输出固定效应解
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{REPEATED语句选项}
+\begin{itemize}
+    \item \texttt{type=un}：非结构化
+    \item \texttt{type=cs}：复合对称
+    \item \texttt{type=ar(1)}：一阶自回归
+    \item \texttt{type=toep}：Toeplitz
+    \item \texttt{type=unh}：异质性UN
+    \item \texttt{group=}：分组协方差
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+
+\vspace{0.2cm}
+\begin{exampleblock}{R与SAS的对应关系}
+\centering
+\texttt{us(AVISIT | USUBJID)} $\leftrightarrow$ \texttt{repeated AVISIT / subject=USUBJID type=UN}
+
+\texttt{method="Kenward-Roger"} $\leftrightarrow$ \texttt{ddfm=KR}
+\end{exampleblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{SAS输出解读}
+\begin{block}{主要输出表格}
+\begin{enumerate}
+    \item \textbf{模型信息}：方法（REML/ML）、协方差结构、受试者数
+    \item \textbf{收敛状态}：确认迭代收敛
+    \item \textbf{协方差参数估计}：UN结构的方差和相关
+    \item \textbf{拟合标准}：AIC、BIC、-2Res Log Likelihood
+    \item \textbf{固定效应解}：系数估计、标准误、df、t值、p值
+    \item \textbf{LSM差异}：各访视的治疗组对比
+\end{enumerate}
+\end{block}
+
+\vspace{0.2cm}
+\begin{alertblock}{与R结果的一致性}
+\begin{itemize}
+    \item 使用相同数据和相同结构时，SAS与R的\textbf{系数估计应一致}
+    \item R mmrm的\texttt{vcov="Kenward-Roger-Linear"}可匹配SAS的线性KR
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+%===================================================
+\section{R与SAS代码对照与案例演示}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}{R与SAS代码对照表}
+\begin{center}
+\small
+\begin{tabular}{p{5.5cm}p{5.5cm}}
+\toprule
+\textbf{R (mmrm)} & \textbf{SAS (PROC MIXED)} \\
+\midrule
+\texttt{mmrm(formula=..., data=...)} & \texttt{proc mixed data=...;} \\
+\texttt{FEV1 \textasciitilde\ ARMCD * AVISIT} & \texttt{model fev1 = armcd avisit armcd*avisit;} \\
+\texttt{+ RACE + SEX} & \texttt{+ race sex} \\
+\texttt{us(AVISIT | USUBJID)} & \texttt{repeated avisit / subject=usubjid type=un;} \\
+\texttt{reml = TRUE} & \texttt{method=reml} \\
+\texttt{method="Kenward-Roger"} & \texttt{ddfm=kr} \\
+\texttt{emmeans(fit, \textasciitilde\ ARMCD | AVISIT)} & \texttt{lsmeans armcd*avisit;} \\
+\texttt{pairs(..., reverse=TRUE)} & \texttt{lsmeans ... / diff;} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2cm}
+\begin{exampleblock}{关键差异}
+\begin{itemize}
+    \item R使用公式语法，SAS使用语句式语法
+    \item R的\texttt{us()}自动处理异质性，SAS的\texttt{TYPE=UN}同理
+\end{itemize}
+\end{exampleblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{完整案例：FEV1肺功能试验}
+\begin{block}{研究背景}
+随机对照试验，比较治疗组（TRT）与安慰剂组（PBO）对FEV1（肺功能）的影响。测量时间点：VIS1--VIS4。
+\end{block}
+
+\textbf{分析目标：}
+\begin{enumerate}
+    \item 估计各访视两组间的FEV1差异
+    \item 检验最终访视（VIS4）的治疗效应
+    \item 在MAR假设下处理缺失数据
+\end{enumerate}
+
+\vspace{0.1cm}
+\begin{alertblock}{模型预设}
+\begin{itemize}
+    \item 协方差结构：UN（主要），Toeplitz（fallback）
+    \item 自由度：Kenward-Roger\quad 估计方法：REML\quad 主要终点：VIS4的LSM差异
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[fragile]{案例：R完整代码}
+\begin{lstlisting}[language=R,basicstyle=\ttfamily\scriptsize]
+library(mmrm)
+library(emmeans)
+
+# 1. Fit UN-MMRM
+fit <- mmrm(
+  formula = FEV1 ~ RACE + SEX + ARMCD * AVISIT + us(AVISIT | USUBJID),
+  data = fev_data, method = "Kenward-Roger"
+)
+
+# 2. Check convergence
+component(fit, "convergence")  # should be 0
+
+# 3. View covariance estimate
+VarCorr(fit)
+
+# 4. LS means and contrasts
+emm <- emmeans(fit, ~ ARMCD | AVISIT)
+contrasts <- pairs(emm, reverse = TRUE)
+
+# 5. Extract final visit results
+summary(contrasts)  # focus on VIS4
+\end{lstlisting}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[fragile]{案例：SAS完整代码}
+\begin{lstlisting}[language=R,numbers=none,basicstyle=\ttfamily\scriptsize]
+proc mixed data=fev method=reml;
+  class usubjid armcd avisit race sex;
+  model fev1 = race sex armcd avisit armcd*avisit / ddfm=kr solution;
+  repeated avisit / subject=usubjid type=un r rcorr;
+  lsmeans armcd*avisit / diff slice=avisit;
+  estimate 'TRT-PBO at VIS4' armcd 1 -1 armcd*avisit 0 0 0 1  0 0 0 -1;
+run;
+\end{lstlisting}
+
+\vspace{0.2cm}
+\begin{exampleblock}{SAS-specific Options}
+\begin{itemize}
+    \item \texttt{r} / \texttt{rcorr}: output estimated covariance/correlation matrix
+    \item \texttt{slice=AVISIT}: stratified test by visit
+    \item \texttt{estimate}: custom linear contrast
+\end{itemize}
+\end{exampleblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{结果一致性验证}
+\begin{block}{验证要点}
+当R与SAS使用\textbf{相同模型}时，应检查：
+\begin{enumerate}
+    \item 固定效应系数估计（小数点后3-4位一致）
+    \item 协方差参数估计
+    \item 最终访视的LSM差异及其标准误
+    \item 模型拟合统计量（-2 log likelihood）
+\end{enumerate}
+\end{block}
+
+\vspace{0.1cm}
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{指标} & \textbf{R mmrm} & \textbf{SAS PROC MIXED} \\
+\midrule
+VIS4 LSM差异 & 4.40 & 4.40 \\
+标准误 & 1.68 & 1.68 \\
+df (KR) & 133 & 133 \\
+t值 & 2.617 & 2.617 \\
+p值 & 0.0099 & 0.0099 \\
+-2 Res Log L & 3387.4 & 3387.4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.1cm}
+\begin{alertblock}{注意}
+若使用不同的KR实现（线性vs非线性），标准误可能有微小差异。R中设置\texttt{vcov="Kenward-Roger-Linear"}可匹配SAS默认行为。
+\end{alertblock}
+\end{frame}
+
+%===================================================
+\section{高级主题与注意事项}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}{Estimand框架与MMRM}
+\begin{block}{ICH E9(R1) addendum}
+MMRM是\textbf{估计方法}，不是estimand。在确证性试验中：
+\begin{itemize}
+    \item 先定义estimand（目标估计量）
+    \item 再选择匹配的分析方法
+\end{itemize}
+\end{block}
+
+\textbf{MMRM与策略的匹配：}
+\begin{itemize}
+    \item \textbf{假设策略}（Hypothetical）：MMRM + MAR最自然
+    \item \textbf{治疗政策策略}（Treatment-policy）：可能需要不同缺失处理
+    \item \textbf{复合策略}（Composite）：MMRM可能不适用
+\end{itemize}
+
+\begin{alertblock}{关键原则}
+MAR假设必须是有意匹配所选estimand的\textbf{预设选择}，而非事后想法。若怀疑MNAR，需预设敏感性分析。
+\end{alertblock}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[fragile]{收敛问题与诊断}
+\begin{block}{Common Convergence Issues}
+\textbf{1. UN does not converge:} many visits, small sample, complex missing patterns
+
+\textbf{2. Covariance not positive definite:} negative variance or $|\rho|>1$
+
+\textbf{3. Hessian not positive definite:} flat optimization surface, non-identifiable parameters
+\end{block}
+
+\vspace{0.1cm}
+\textbf{Solutions:}
+
+\textbullet~Preset fallback covariance structure (Toeplitz, AR1)
+
+\textbullet~Try different optimizers (L-BFGS-B, BFGS, nlminb)
+
+\textbullet~Check data: outliers, visit coding, missing patterns
+
+\textbullet~Simplify model: reduce interactions, merge sparse categories
+
+\vspace{0.1cm}
+\begin{lstlisting}[language=R,basicstyle=\ttfamily\scriptsize]
+# Try multiple optimizers
+fit <- mmrm(..., control = mmrm_control(
+  optimizer = c("L-BFGS-B", "BFGS", "nlminb")
+))
+\end{lstlisting}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[fragile]{模型诊断与残差分析}
+\begin{block}{mmrm支持的残差类型}
+\begin{lstlisting}[language=R,basicstyle=\ttfamily\scriptsize]
+# Raw residuals
+res_resp <- residuals(fit, type = "response")
+
+# Pearson residuals (recommended for diagnostics)
+res_pearson <- residuals(fit, type = "pearson")
+
+# Standardized residuals (approx N(0,1), for normality check)
+res_norm <- residuals(fit, type = "normalized")
+\end{lstlisting}
+\end{block}
+
+\textbf{诊断清单：}
+\begin{enumerate}
+    \item \textbf{正态性}：标准化残差的Q-Q图
+    \item \textbf{异常值}：Pearson残差的绝对值 $> 3$
+    \item \textbf{协方差结构}：比较不同结构的AIC/BIC
+    \item \textbf{影响点}：检查极端值对估计的影响
+\end{enumerate}
+
+\begin{alertblock}{注意}
+MMRM允许异方差，因此\textbf{原始残差}应谨慎解读。推荐使用\textbf{Pearson残差}或\textbf{标准化残差}进行诊断。
+\end{alertblock}
+\end{frame}
+
+%===================================================
+\section{总结}
+%===================================================
+
+%---------------------------------------------------
+\begin{frame}{要点总结}
+\begin{block}{核心要点}
+\begin{enumerate}
+    \item \textbf{MMRM是LMM的特例}：省略G-side随机效应，仅通过R-side结构化协方差建模within-subject相关
+    \item \textbf{确证性试验金标准}：在MAR下无需插补，利用所有观测数据
+    \item \textbf{UN是默认结构}：假设最少，但需预设fallback
+    \item \textbf{访视作分类变量}：允许治疗效应随时间呈任意形状
+    \item \textbf{R与SAS可互验}：相同模型应产生一致结果
+\end{enumerate}
+\end{block}
+
+\vspace{0.2cm}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.48\textwidth}
+\textbf{选择LMM当：}
+\begin{itemize}
+    \item 关注受试者间变异
+    \item 多层级聚类结构
+    \item 个体预测有意义
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{选择MMRM当：}
+\begin{itemize}
+    \item 组间比较为主要目标
+    \item 计划访视的纵向数据
+    \item 需处理MAR缺失
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}{参考文献}
+\small
+\begin{enumerate}
+    \item Laird NM, Ware JH. Random-effects models for longitudinal data. \textit{Biometrics}. 1982;38(4):963-974.
+    \item Pinheiro J, Bates DM. \textit{Mixed-Effects Models in S and S-PLUS}. Springer; 2000.
+    \item Mallinckrodt CH, et al. Recommendations for the Primary Analysis of Continuous Endpoints in Longitudinal Clinical Trials. \textit{Drug Information Journal}. 2008;42(4):303-319.
+    \item Mallinckrodt C, Lipkovich I. \textit{Analyzing Longitudinal Clinical Trial Data: A Practical Guide}. Chapman \& Hall/CRC; 2017.
+    \item National Research Council. \textit{The Prevention and Treatment of Missing Data in Clinical Trials}. The National Academies Press; 2010.
+    \item ICH E9(R1). Addendum on Estimands and Sensitivity Analysis in Clinical Trials. 2019.
+    \item Cnaan A, Laird NM, Slasor P. Using the general linear mixed model to analyse unbalanced repeated measures. \textit{Statistics in Medicine}. 1997;16(20):2349-2380.
+    \item Littell RC, et al. Modelling covariance structure in the analysis of repeated measures data. \textit{Statistics in Medicine}. 2000;19(13):1793-1819.
+    \item openpharma/mmrm R package documentation. \url{https://openpharma.github.io/mmrm/}
+    \item SAS/STAT 9.2 User's Guide: PROC MIXED. SAS Institute Inc.
+\end{enumerate}
+\end{frame}
+
+%---------------------------------------------------
+\begin{frame}[plain]
+\begin{center}
+\vspace{2cm}
+{\Huge \textcolor{darkblue}{谢谢！}}
+
+\vspace{1cm}
+{\Large Questions \& Discussion}
+
+
+
+\end{center}
+\end{frame}
+
+\end{document}
